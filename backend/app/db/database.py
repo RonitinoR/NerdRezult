@@ -1,9 +1,12 @@
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
+from core.config import settings
 
-db = SQLAlchemy()
+engine = create_async_engine(settings.DATABASE_URL)
+async_session = sessionmaker(
+    engine, class_= AsyncSession, expire_on_commit = False
+)
 
-def init_db(app):
-    db.init_app(app)
-    with app.app_context():
-        db.create_all()
+async def get_db():
+    async with async_session() as session:
+        yield session
