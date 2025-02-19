@@ -1,7 +1,7 @@
 asyncpg
 httpx
 fastapi
-outhlib
+oauthlib
 passlib[bcrypt]
 python-jose[cryptography]
 python-dotenv
