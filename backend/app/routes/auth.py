@@ -1,5 +1,6 @@
 import os
 import uuid
+import psycopg2
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
 from fastapi.security import OAuth2PasswordRequestForm
@@ -7,10 +8,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from db.models import User
 from db.database import get_db
+from core.config import settings
 from core.security import get_password_hash, verify_password, create_access_token
-
+from core.security import PhoneNumber, OTP, validate_phone_number, generate_otp
 UPLOAD_DIR = Path("uploads/profile_pic")
 UPLOAD_DIR.mkdir(parents = True, exist_ok = True)
+
+# Connect to PostgreSQL
+DATABASE_URL = settings.DATABASE_URL
+conn = psycopg2.connect(DATABASE_URL)
+cursor = conn.cursor()
 
 router = APIRouter()
 @router.post("/signup")
@@ -72,4 +79,32 @@ async def login(
     if not user or verify_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code = 401, detail = "Invalid credential")
     access_token = create_access_token(data = {"sub": user.email})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+# OTP endpoints
+@router.post("/send-otp")
+def send_otp(phone: PhoneNumber):
+    phone_number = validate_phone_number(phone.phone_number)
+    otp = generate_otp()
+    cursor.execute("""
+    INSERT INTO users (phone_number, otp, otp_valid_until) 
+    VALUES (%s, %s, NOW() + INTERVAL '5 minutes')
+    ON CONFLICT (phone_number) DO UPDATE 
+    SET otp = EXCLUDED.otp, otp_valid_until = EXCLUDED.otp_valid_until;
+    """, (phone_number, otp))
+    conn.commit()
+    # Here, you'd send the OTP via an SMS API
+    return {"message": "OTP sent successfully"}
+
+@router.post("/verify-otp")
+def verify_otp(otp_data: OTP):
+    phone_number = validate_phone_number(otp_data.phone_number)
+    cursor.execute("""
+    SELECT otp FROM users 
+    WHERE phone_number = %s AND otp = %s AND otp_valid_until > NOW();
+    """, (phone_number, otp_data.otp))
+    user = cursor.fetchone()
+    if user is None:
+        raise HTTPException(status_code=400, detail="Invalid OTP")
+    access_token = create_access_token(data={"sub": phone_number})
     return {"access_token": access_token, "token_type": "bearer"}
