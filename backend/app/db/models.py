@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Numeric, String, Boolean, ForeignKey, Text, ARRAY
+from sqlalchemy import Column, DateTime, Integer, Numeric, String, Boolean, ForeignKey, Text, ARRAY
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -15,6 +15,9 @@ class User(Base):
     is_active = Column(Boolean, default = True)
     provider = Column(String, default = "email") # 'email', 'github', 'google'
     provider_id = Column(String)
+    phone_number = Column(String, unique=True, index=True)
+    otp = Column(String)
+    otp_valid_until = Column(DateTime)
 
 class Profile(Base):
     __tablename__ = "profiles"
