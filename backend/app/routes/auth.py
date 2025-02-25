@@ -1,16 +1,16 @@
-import os
+import re
 import uuid
 import psycopg2
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from db.models import User
-from db.database import get_db
-from core.config import settings
-from core.security import get_password_hash, verify_password, create_access_token
-from core.security import PhoneNumber, OTP, validate_phone_number, generate_otp
+from sqlalchemy import select, or_
+from app.db.models import User
+from app.db.database import get_db
+from app.core.config import settings
+from app.core.security import get_password_hash, verify_password, create_access_token
+from app.core.security import PhoneNumber, OTP, validate_phone_number, generate_otp
 UPLOAD_DIR = Path("uploads/profile_pic")
 UPLOAD_DIR.mkdir(parents = True, exist_ok = True)
 
@@ -40,6 +40,7 @@ async def store_file(file: UploadFile):
         content = await file.read()
         buffer.write(content)
     return f"/static/profile_pics/{filename}"
+
 async def signup(
     name: str = Form(...),
     email: str = Form(...),
