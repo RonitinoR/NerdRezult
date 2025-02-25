@@ -3,7 +3,7 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
 from core.config import settings
 import pyotp
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from fastapi import HTTPException 
 from phonenumbers import parse, is_valid_number, format_number, PhoneNumberFormat
 pwd_context = CryptContext(schemes = ["bcrypt"], deprecated = "auto")
@@ -26,6 +26,13 @@ class PhoneNumber(BaseModel):
 class OTP(BaseModel):
     phone_number: str
     otp: str
+
+class OTPRequest(BaseModel):
+    email: EmailStr
+
+class PasswordReset(BaseModel):
+    reset_token: str
+    new_password: str
 
 def validate_phone_number(phone_number: str) -> str:
     number = parse(phone_number, None)

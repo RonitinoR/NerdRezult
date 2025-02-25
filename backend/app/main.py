@@ -5,8 +5,8 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from contextlib import asynccontextmanager
-from routes import auth, oauth
-from db import database
+from app.routes import auth, oauth
+from app.db import database
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

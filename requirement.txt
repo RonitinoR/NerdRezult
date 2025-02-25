@@ -1,0 +1,14 @@
+asyncpg
+httpx
+fastapi
+oauthlib
+passlib
+phonenumbers
+pydantic-settings
+pyotp
+python-jose
+python-dotenv
+psycopg2
+requests-oauthlib
+sqlalchemy
+uvicorn
