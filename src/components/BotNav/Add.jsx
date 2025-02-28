@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import './Add.css';
+<<<<<<< HEAD
 import ProjectPage from '../Projectscreen/projectpage'; // Fixed import path
 
+=======
+>>>>>>> 039e131b3820b13067b03547123a73ac3b90f334
 const Popup = () => {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
 
@@ -59,6 +62,7 @@ const Popup = () => {
               padding: '20px',
               borderRadius: '5px',
               boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)',
+<<<<<<< HEAD
               width: '90%',
               maxWidth: '600px',
               maxHeight: '90%',
@@ -66,6 +70,12 @@ const Popup = () => {
             }}
           >
             <ProjectPage isPopup={true} onClose={closePopup} />
+=======
+            }}
+          >
+            <h2>Popup Page</h2>
+            <p>This is the content of the popup page.</p>
+>>>>>>> 039e131b3820b13067b03547123a73ac3b90f334
             <button
               style={{
                 marginTop: '20px',
@@ -86,6 +96,10 @@ const Popup = () => {
   );
 };
 
+<<<<<<< HEAD
 export default Popup;
 
 
+=======
+export default Popup;
+>>>>>>> 039e131b3820b13067b03547123a73ac3b90f334
