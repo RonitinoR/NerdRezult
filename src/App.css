@@ -1,0 +1,65 @@
+/* General container */
+.phone-input-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 12px;
+  background-color: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  transition: border-color 0.3s ease-in-out;
+}
+
+/* Country code section */
+.country-code {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-right: 12px;
+  border-right: 1px solid #d1d5db;
+}
+
+/* Flag box */
+.flag-box {
+  width: 20px;
+  height: 14px;
+  background-color: #ff4f5a;
+  border-radius: 3px;
+}
+
+/* Dropdown icon */
+.dropdown-icon {
+  font-size: 16px;
+  color: #4b5563;
+  cursor: pointer;
+}
+
+/* Input field */
+.phone-input {
+  flex-grow: 1;
+  padding-left: 12px;
+  font-size: 16px;
+  color: #374151;
+  border: none;
+  outline: none;
+}
+
+/* Hover & Focus effects */
+.phone-input-container:hover {
+  border-color: #4f46e5;
+}
+
+.phone-input:focus {
+  color: #111827;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 480px) {
+  .phone-input-container {
+    padding: 10px;
+  }
+
+  .phone-input {
+    font-size: 14px;
+  }
+}
