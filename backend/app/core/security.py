@@ -1,7 +1,7 @@
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
-from core.config import settings
+from app.core.config import settings
 import pyotp
 from pydantic import BaseModel, EmailStr
 from fastapi import HTTPException 

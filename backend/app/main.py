@@ -6,16 +6,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from contextlib import asynccontextmanager
 from app.routes import auth, oauth
-from app.db import database
+from app.db.database import get_db, engine
+from app.db.models import Base
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # create all the databases
-    await database.create_all()
+    # Ensure migrations are applied at the start
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
     yield
-
-    # shutdown logic: disconnect from database
-    await database.disconnect()
 
 app = FastAPI(lifespan = lifespan)
 

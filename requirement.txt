@@ -1,13 +1,17 @@
+alembic
 asyncpg
 httpx
 fastapi
+greenlet
 oauthlib
 passlib
 phonenumbers
+"pydantic[email]"
 pydantic-settings
 pyotp
 python-jose
 python-dotenv
+python-multipart
 psycopg2
 requests-oauthlib
 sqlalchemy
