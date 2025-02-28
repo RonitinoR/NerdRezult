@@ -1,0 +1,7 @@
+.notificationsText {
+    color: #00c6fb;
+  }
+    .notificationsIcon {
+    background: linear-gradient(to right, #84fab0, #8fd3f4);
+    box-shadow: 0px 10px 20px 0px rgba(132, 250, 176, 0.15);
+  }

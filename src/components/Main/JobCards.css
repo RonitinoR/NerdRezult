@@ -1,0 +1,193 @@
+.main-content {
+    margin-top: 80px; /* Adjust this to the height of your header */
+    padding: 10px;
+}
+main.job-listings {
+    flex: 1;
+    display: contents;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
+  }
+
+.job-listings {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.job-card {
+    background-color: var(--background-light);
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+    margin-top: 20px;
+    margin-bottom: 2px; 
+    margin-left: 40px;
+    margin-right: 40px;
+}
+
+.job-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    color: var(--background-light);
+    font-weight: 700;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.job-icon-blue {
+    background: linear-gradient(45deg, var(--primary-blue) 50%, #00f2fe 120.71%);
+}
+
+.job-icon-red {
+    background: linear-gradient(45deg, var(--primary-red) 50%, #f36 120.71%);
+}
+.job-card-blue {
+    background: linear-gradient(45deg, #FFF0F0 50%, #FEEFF0 120.71%);
+}
+
+.job-card-red {
+    background: linear-gradient(45deg, #EEFBFF 50%, #D5ECFF 120.71%);
+}
+.job-card {
+    display: flex;
+    align-items: flex-start; /* Align the content vertically to the top */
+}
+
+.job-icon {
+    margin-right: 20px; /* Space between the icon and the content */
+    flex-shrink: 0; /* Prevent the icon from shrinking */
+}
+
+.job-content {
+    margin-top: 0; /* Remove the top margin */
+    flex-grow: 1; /* Allow the content to grow */
+    display: flex;
+    flex-direction: column; /* Stack content vertically */
+    position: relative; /* Make this container the reference for absolute positioning */
+}
+
+.job-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.job-title {
+    font-family: 'Adamina', serif;
+    font-size: 18px;
+    color: var(--text-dark);
+    margin: 0;
+}
+
+.job-tag {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.job-tag-featured {
+    color: var(--primary-blue);
+    background-color: rgba(79, 172, 254, 0.1);
+}
+
+.job-tag-urgent {
+    color: var(--primary-red);
+    background-color: rgba(255, 107, 107, 0.1);
+}
+
+.job-rate {
+    margin-left: auto;
+    padding: 4px 12px;
+    border-radius: 20px;
+    color: var(--background-light);
+    font-size: 14px;
+}
+
+.job-rate-blue {
+    background: linear-gradient(90deg, var(--primary-blue) 0%, #00f2fe 100%);
+}
+
+.job-rate-red {
+    background: linear-gradient(90deg, var(--primary-red) 0%, #f36 100%);
+}
+
+.section-title {
+    color: var(--text-dark);
+    font-weight: 500;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.job-highlights {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 24px 0;
+}
+
+.job-highlight-item {
+    color: var(--text-light);
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.skills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.skill-tag {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+}
+
+.skill-tag-blue {
+    color: var(--primary-blue);
+    background-color: rgba(79, 172, 254, 0.1);
+}
+
+.skill-tag-red {
+    color: var(--primary-red);
+    background-color: rgba(255, 107, 107, 0.1);
+}
+
+.job-meta {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.meta-item {
+    color: var(--text-light);
+    font-size: 14px;
+}
+
+.apply-btn {
+    padding: 8px 24px;
+    border-radius: 20px;
+    border: none;
+    color: var(--background-light);
+    font-size: 14px;
+    cursor: pointer;
+    position: absolute; /* Absolute positioning to place it at the bottom */
+    right: 0; /* Position to the right side */
+    bottom: 0; /* Position at the bottom */
+}
+
+.apply-btn-blue {
+    background: linear-gradient(90deg, var(--primary-blue) 0%, #00f2fe 100%);
+}
+
+.apply-btn-red {
+    background: linear-gradient(90deg, var(--primary-red) 0%, #f36 100%);
+}
+
+
