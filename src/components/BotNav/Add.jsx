@@ -66,8 +66,6 @@ const Popup = () => {
             }}
           >
             <ProjectPage isPopup={true} onClose={closePopup} />
-            }}
-          >
             <h2>Popup Page</h2>
             <p>This is the content of the popup page.</p>
             <button
@@ -89,8 +87,5 @@ const Popup = () => {
     </div>
   );
 };
-
-export default Popup;
-
 
 export default Popup;
