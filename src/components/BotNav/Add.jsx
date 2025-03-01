@@ -66,8 +66,6 @@ const Popup = () => {
             }}
           >
             <ProjectPage isPopup={true} onClose={closePopup} />
-            <h2>Popup Page</h2>
-            <p>This is the content of the popup page.</p>
             <button
               style={{
                 marginTop: '20px',
