@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { User, Phone, Star, ChevronDown, Plus, X } from "lucide-react";
+import { Phone, Star, ChevronDown, Plus, X, Users, UserIcon } from "lucide-react";
 import {
   Avatar,
   AvatarFallback,
@@ -99,7 +99,7 @@ const ProfilePage = () => {
                 <Avatar className="w-32 h-32 rounded-full border-4 border-white shadow-md">
                   <AvatarImage src="/Users/anoopreddy/Downloads/Itachi.jpeg" />
                   <AvatarFallback>
-                    <User className="w-16 h-16" />
+                    <UserIcon className="w-16 h-16" />
                   </AvatarFallback>
                 </Avatar>
                 <label
@@ -163,7 +163,7 @@ const ProfilePage = () => {
               </div>
               <div className="flex justify-end gap-4 mt-2">
                 <Button size="icon" variant="secondary">
-                  <User className="w-4 h-4" />
+                  <Users className="w-4 h-4" /> {/* Use the Users icon from Lucide React */}
                 </Button>
                 <Button size="icon" variant="secondary">
                   <Phone className="w-4 h-4" />
@@ -257,7 +257,7 @@ const ProfilePage = () => {
               <Avatar className="w-10 h-10">
                 <AvatarImage src="/placeholder.svg" />
                 <AvatarFallback>
-                  <User className="w-5 h-5" />
+                  <UserIcon className="w-5 h-5" />
                 </AvatarFallback>
               </Avatar>
               <p className="text-sm text-gray-600">
@@ -391,3 +391,9 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
+
+
+
+
+
+
