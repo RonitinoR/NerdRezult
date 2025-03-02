@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { User, Phone, Star, ChevronDown, Plus } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { User, Phone, Star, ChevronDown, Plus, X } from "lucide-react";
 import {
   Avatar,
   AvatarFallback,
@@ -11,42 +11,46 @@ import {
   SelectValue,
   Button,
   Input,
-  Badge
-} from './ui';
+  Badge,
+} from "./ui";
 
 const ProfilePage = () => {
   const [profileData, setProfileData] = useState({
-    ownerName: "Sammantha",
-    certificate: "M.S. CS",
-    role: "A.I. Architect",
+    ownerName: "",
+    certificate: "",
+    role: "",
     projects: 0,
     followers: 0,
     earnings: 0,
-    rating: 4,
-    skills: [
-      ".Java",
-      ".Js",
-      ".Css",
-      ".Html",
-      ".AI",
-      ".MI",
-      ".Python",
-      ".SQL",
-      ".NoSQL",
-      ".MongoDB",
-      ".Restful",
-      ".REACT",
-    ],
-    certified: "Masters in computer science",
-    projectLinks: ["https://github.com/project1"],
+    rating: 0,
+    skills:[],
+    certified: "",
+    projectLinks:[],
+    projectsName: "",
   });
 
   const [sortOrder, setSortOrder] = useState("asc");
+  const [newSkill, setNewSkill] = useState("");
+
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        const response = await fetch("/api/profile"); // Replace with your actual API endpoint
+        const data = await response.json();
+        setProfileData(data);
+      } catch (error) {
+        console.error("Error fetching profile data:", error);
+      }
+    };
+
+    fetchProfileData();
+  },);
 
   const handleImageUpload = (event) => {
     const file = event.target.files?.[0];
     if (file) {
       console.log("Uploading image:", file);
+      // Here you would typically handle the image upload to your server
     }
   };
 
@@ -58,11 +62,37 @@ const ProfilePage = () => {
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
   };
 
+  const handleSkillChange = (index, value) => {
+    setProfileData((prevData) => ({
+      ...prevData,
+      skills: prevData.skills.map((skill, i) =>
+        i === index ? value : skill
+      ),
+    }));
+  };
+
+  const addSkill = () => {
+    if (newSkill.trim() !== "") {
+      setProfileData((prevData) => ({
+        ...prevData,
+        skills: [...prevData.skills, newSkill.trim()],
+      }));
+      setNewSkill("");
+    }
+  };
+
+  const removeSkill = (index) => {
+    setProfileData((prevData) => ({
+      ...prevData,
+      skills: prevData.skills.filter((_, i) => i !== index),
+    }));
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-[#f0f0f0] p-4">
       <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm overflow-hidden">
         {/* Profile Header */}
-        <div className="relative bg-gray-100 p-6 rounded-t-2xl">
+        <div className="relative bg-gray-200 p-6 rounded-t-2xl">
           <div className="flex items-start gap-6">
             <div className="relative flex flex-col items-center">
               <div className="relative">
@@ -100,12 +130,18 @@ const ProfilePage = () => {
             </div>
 
             <div className="flex-1 space-y-3">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Profile
+              </h2>
               <div>
                 <label className="text-sm text-gray-500">Owner Name</label>
                 <Input
                   value={profileData.ownerName}
                   onChange={(e) =>
-                    setProfileData({ ...profileData, ownerName: e.target.value })
+                    setProfileData({
+                      ...profileData,
+                      ownerName: e.target.value,
+                    })
                   }
                   className="bg-white/80 backdrop-blur-sm"
                 />
@@ -117,7 +153,10 @@ const ProfilePage = () => {
                 <Input
                   value={profileData.certificate}
                   onChange={(e) =>
-                    setProfileData({ ...profileData, certificate: e.target.value })
+                    setProfileData({
+                      ...profileData,
+                      certificate: e.target.value,
+                    })
                   }
                   className="bg-white/80 backdrop-blur-sm"
                 />
@@ -135,7 +174,7 @@ const ProfilePage = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 p-6 bg-gray-50">
+        <div className="grid grid-cols-3 gap-4 p-6 bg-gray-100">
           <div className="text-center">
             <Input
               type="number"
@@ -195,7 +234,7 @@ const ProfilePage = () => {
           </div>
 
           {/* Rating */}
-          <div className="bg-gray-50 p-4 rounded-lg">
+          <div className="bg-gray-100 p-4 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-sm">Rating</span>
               <div className="flex">
@@ -222,8 +261,8 @@ const ProfilePage = () => {
                 </AvatarFallback>
               </Avatar>
               <p className="text-sm text-gray-600">
-                If you are looking for better results in effective price connect
-                with her and look what she has done for me
+                If you are looking for better results in effective price
+                connect with her and look what she has done for me
               </p>
             </div>
           </div>
@@ -231,10 +270,38 @@ const ProfilePage = () => {
           {/* Skills Grid */}
           <div className="grid grid-cols-4 gap-2">
             {profileData.skills.map((skill, index) => (
-              <Badge key={index} variant="secondary" className="justify-center">
-                {skill}
+              <Badge
+                key={index}
+                variant="secondary"
+                className="justify-center"
+              >
+                <Input
+                  value={skill}
+                  onChange={(e) =>
+                    handleSkillChange(index, e.target.value)
+                  }
+                  className="bg-white/80 backdrop-blur-sm text-center w-full"
+                />
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => removeSkill(index)}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
               </Badge>
             ))}
+          </div>
+
+          {/* Add Skill Input */}
+          <div className="flex gap-2">
+            <Input
+              value={newSkill}
+              onChange={(e) => setNewSkill(e.target.value)}
+              placeholder="Add new skill"
+              className="bg-white/80 backdrop-blur-sm"
+            />
+            <Button onClick={addSkill}>Add</Button>
           </div>
 
           {/* Dropdowns */}
@@ -263,13 +330,18 @@ const ProfilePage = () => {
             </div>
 
             <div>
-              <label className="text-sm text-gray-500">Links to projects</label>
+              <label className="text-sm text-gray-500">
+                Links to projects
+              </label>
               <Select
                 value={profileData.projectLinks[0]}
                 onValueChange={(value) =>
                   setProfileData({
                     ...profileData,
-                    projectLinks: [value, ...profileData.projectLinks.slice(1)],
+                    projectLinks: [
+                      value,
+                      ...profileData.projectLinks.slice(1),
+                    ],
                   })
                 }
               >
@@ -290,9 +362,9 @@ const ProfilePage = () => {
             <div>
               <label className="text-sm text-gray-500">Projects</label>
               <Select
-                value={profileData.certified}
+                value={profileData.projectsName}
                 onValueChange={(value) =>
-                  setProfileData({ ...profileData, certified: value })
+                  setProfileData({ ...profileData, projectsName: value })
                 }
               >
                 <SelectTrigger>
@@ -319,6 +391,3 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
-
-
-
