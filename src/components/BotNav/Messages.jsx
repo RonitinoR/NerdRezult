@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./Mp.css";
+import Popchat from "./Popchat";
 const Messages = () => {
     const [showPopup, setShowPopup] = useState(false);
   
@@ -25,8 +26,7 @@ const Messages = () => {
         {showPopup && (
           <div className="popup-overlay">
             <div className="popup-content">
-              <h2>Messages</h2>
-              <p>Your latest messages will appear here.</p>
+              {showPopup && <Popchat setShowPopup={setShowPopup} />}
   
               {/* Button to Close Popup */}
               <button className="close-btn" onClick={() => setShowPopup(false)}>

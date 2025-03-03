@@ -4,7 +4,6 @@ import Login from "./components/Login";
 import EmailLoginPage from "./components/Loginsetup/EmailLoginPage";
 import SignUp from "./components/Loginsetup/SignUp";
 import HomeScreen from "./components/Loginsetup/HomeScreen";
-
 function App() {
   return (
     <Router>
