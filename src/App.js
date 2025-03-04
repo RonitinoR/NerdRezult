@@ -4,13 +4,9 @@ import Login from "./components/Login";
 import EmailLoginPage from "./components/Loginsetup/EmailLoginPage";
 import SignUp from "./components/Loginsetup/SignUp";
 import HomeScreen from "./components/Loginsetup/HomeScreen";
-<<<<<<< HEAD
-=======
 import Profile from "./components/Profile/ProfilePage";
 import ProjectPage from "./components/Projectscreen/projectpage";
 
-
->>>>>>> ae9acd937da4c4f9ba476c881a5d7083c9a3122a
 function App() {
   return (
     <Router>
