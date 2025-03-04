@@ -2,10 +2,10 @@ from fastapi import APIRouter, Request, Depends
 from authlib.integrations.starlette_client import OAuth
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from core.config import settings
-from core.security import create_access_token
-from db.database import get_db
-from db.models import User
+from app.core.config import settings
+from app.core.security import create_access_token
+from app.db.database import get_db
+from app.db.models import User
 import json
 
 router = APIRouter()

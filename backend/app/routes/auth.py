@@ -1,25 +1,21 @@
-import os
+import re
 import uuid
-import psycopg2
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from db.models import User
-from db.database import get_db
-from core.config import settings
-from core.security import get_password_hash, verify_password, create_access_token
-from core.security import PhoneNumber, OTP, validate_phone_number, generate_otp
+from sqlalchemy import select, text
+from app.db.models import User
+from app.db.database import get_db
+from app.core.config import settings
+from app.core.security import get_password_hash, verify_password, create_access_token
+from app.core.security import PhoneNumber, OTP, validate_phone_number, generate_otp
+
 UPLOAD_DIR = Path("uploads/profile_pic")
 UPLOAD_DIR.mkdir(parents = True, exist_ok = True)
 
-# Connect to PostgreSQL
-DATABASE_URL = settings.DATABASE_URL
-conn = psycopg2.connect(DATABASE_URL)
-cursor = conn.cursor()
-
 router = APIRouter()
+
 @router.post("/signup")
 async def store_file(file: UploadFile):
     #generate unique filename
@@ -40,6 +36,7 @@ async def store_file(file: UploadFile):
         content = await file.read()
         buffer.write(content)
     return f"/static/profile_pics/{filename}"
+
 async def signup(
     name: str = Form(...),
     email: str = Form(...),
@@ -83,27 +80,33 @@ async def login(
 
 # OTP endpoints
 @router.post("/send-otp")
-def send_otp(phone: PhoneNumber):
+async def send_otp(phone: PhoneNumber, db: AsyncSession = Depends(get_db)):
     phone_number = validate_phone_number(phone.phone_number)
     otp = generate_otp()
-    cursor.execute("""
-    INSERT INTO users (phone_number, otp, otp_valid_until) 
-    VALUES (%s, %s, NOW() + INTERVAL '5 minutes')
-    ON CONFLICT (phone_number) DO UPDATE 
-    SET otp = EXCLUDED.otp, otp_valid_until = EXCLUDED.otp_valid_until;
-    """, (phone_number, otp))
-    conn.commit()
+    await db.execute(
+        text("""
+            INSERT INTO users (phone_number, otp, otp_valid_until) 
+            VALUES (:phone_number, :otp, NOW() + INTERVAL '5 minutes')
+            ON CONFLICT (phone_number) DO UPDATE 
+            SET otp = EXCLUDED.otp, otp_valid_until = EXCLUDED.otp_valid_until;
+        """), 
+        {"phone_number": phone_number, "otp": otp}
+    )
+    await db.commit()
     # Here, you'd send the OTP via an SMS API
     return {"message": "OTP sent successfully"}
 
 @router.post("/verify-otp")
-def verify_otp(otp_data: OTP):
+async def verify_otp(otp_data: OTP, db: AsyncSession = Depends(get_db)):
     phone_number = validate_phone_number(otp_data.phone_number)
-    cursor.execute("""
-    SELECT otp FROM users 
-    WHERE phone_number = %s AND otp = %s AND otp_valid_until > NOW();
-    """, (phone_number, otp_data.otp))
-    user = cursor.fetchone()
+    result = await db.execute(
+        text("""
+            SELECT otp FROM users 
+            WHERE phone_number = :phone_number AND otp = :otp AND otp_valid_until > NOW();
+        """), 
+        {"phone_number": phone_number, "otp": otp_data.otp}
+    )
+    user = result.fetchone()
     if user is None:
         raise HTTPException(status_code=400, detail="Invalid OTP")
     access_token = create_access_token(data={"sub": phone_number})

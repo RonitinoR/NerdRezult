@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import './Add.css';
+import ProjectPage from '../Projectscreen/projectpage'; // Fixed import path
+
 const Popup = () => {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
 
@@ -57,10 +59,13 @@ const Popup = () => {
               padding: '20px',
               borderRadius: '5px',
               boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)',
+              width: '90%',
+              maxWidth: '600px',
+              maxHeight: '90%',
+              overflowY: 'auto',
             }}
           >
-            <h2>Popup Page</h2>
-            <p>This is the content of the popup page.</p>
+            <ProjectPage isPopup={true} onClose={closePopup} />
             <button
               style={{
                 marginTop: '20px',
