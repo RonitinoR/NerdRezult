@@ -1,7 +1,7 @@
 import re
 import uuid
 from pathlib import Path
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, text
@@ -16,27 +16,38 @@ UPLOAD_DIR.mkdir(parents = True, exist_ok = True)
 
 router = APIRouter()
 
-@router.post("/signup")
+# Helper function for profile pic upload
 async def store_file(file: UploadFile):
-    #generate unique filename
+
+    # validate file path
+    if file.content_type not in ["image/jpeg", "image/png"]:
+        raise HTTPException(
+            status_code = status.HTTP_400_BAD_REQUEST, 
+            detail = "Only JPEG/PNG images allowed"
+        )
+    
+    # validate file size max 2MB
+    max_size = 2 * 1024 * 1024
+    content = await file.read
+    if len(content) > max_size:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail = "File too large (max allowed size upto 2MB)"
+        )
+    
+    # generate unique filename
     file_ext = file.filename.split(".")[-1]
     filename = f"{uuid.uuid4()}.{file_ext}"
     file_path = UPLOAD_DIR / filename
 
-    # validate file path
-    if file.content_type not in ["image/jpeg", "image/png"]:
-        raise HTTPException(400, "only JPEG/PNG allowed")
-    
-    # validate file size max 2MB
-    if file.size > 2 * 1024 * 1024:
-        raise HTTPException(400, "File too large (max allowed size upto 2MB)")
     
     # save the file
     with open(file_path, "wb") as buffer:
-        content = await file.read()
         buffer.write(content)
+    
     return f"/static/profile_pics/{filename}"
 
+@router.post("/signup")
 async def signup(
     name: str = Form(...),
     email: str = Form(...),
@@ -45,39 +56,67 @@ async def signup(
     profile_pic: UploadFile = File(None),
     db: AsyncSession = Depends(get_db)
 ):
+    # validating email format
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        raise HTTPException(
+            status_code = status.HTTP_400_BAD_REQUEST,
+            detail = "Invalid email format" 
+        )
+    # checking for existing user
     existing_user = await db.execute(
         select(User).where(User.email == email)
     )
     if existing_user.scalar():
-        raise HTTPException(status_code = 400, detail = "Email already registered")
+        raise HTTPException(
+            status_code = status.HTTP_400_BAD_REQUEST, 
+            detail = "Email already registered"
+        )
     hashed_password = get_password_hash(password)
+
+    # process profile picture
     profile_pic_url = None
     if profile_pic:
         profile_pic_url = await store_file(profile_pic)
+    
+    # creating new user
     new_user = User(
-        email = email, 
+        name=name,
+        email=email,
         hashed_password = hashed_password,
-        name = name,
-        role = role,
-        profile_pic_url = profile_pic_url
+        role=role,
+        profile_pic_url=profile_pic_url
     )
     db.add(new_user)
-    return {"message": "User created successfully"}
+    await db.commit
+    await db.refresh(new_user)
+
+    return {
+        "message": "User created successfully",
+        "user_id": new_user.id
+    }
 
 @router.post("/login")
 async def login(
-    form_data: OAuth2PasswordRequestForm = Depends(),
+    email: str = Form(...),
+    password: str = Form(...),
     db: AsyncSession = Depends(get_db)
 ):
     user = await db.execute(
-        select(User).where(User.email == form_data.username)
+        select(User).where(User.email == email)
     )
     user = user.scalar()
-    if not user or verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(status_code = 401, detail = "Invalid credential")
+    if not user or not verify_password(password, user.hashed_password):
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED, 
+            detail = "Invalid credential"
+        )
     access_token = create_access_token(data = {"sub": user.email})
-    return {"access_token": access_token, "token_type": "bearer"}
-
+    return {
+        "access_token": access_token, 
+        "token_type": "bearer",
+        "user_id": user.id,
+        "role": user.role
+    }
 # OTP endpoints
 @router.post("/send-otp")
 async def send_otp(phone: PhoneNumber, db: AsyncSession = Depends(get_db)):

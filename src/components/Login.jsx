@@ -1,79 +1,190 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom'; 
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import './Login.css';
 
 const Login = () => {
-  const navigate = useNavigate(); // Initialize useNavigate
+  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  const [searchParams] = useSearchParams();
 
-  // Handle form submission
-  const handleLogin = (e) => {
-    e.preventDefault(); // Prevent default form submission
-    navigate('/HomeScreen'); // Navigate to HomeScreen
+  useEffect(() => {
+    const token = searchParams.get('token');
+    const provider = searchParams.get('provider');
+    const error = searchParams.get('error');
+
+    if (error) {
+      setError(decodeURIComponent(error));
+    } else if (token && provider) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('authMethod', provider);
+      navigate('/homescreen');
+    }
+  }, [searchParams, navigate]);
+
+  const handleBackClick = () => {
+    navigate("/login");
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword((prevState) => !prevState);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
+
+    try {
+      if (!email.trim() || !password.trim()) {
+        throw new Error("Please enter both email and password.");
+      }
+
+      await login('email', { 
+        username: email,
+        password: password 
+      });
+      
+      navigate("/HomeScreen");
+    } catch (err) {
+      setError(err.message || "Failed to login");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setError('');
+    setIsLoading(true);
+    try {
+      await login('google');
+      // Navigation will happen in useEffect after OAuth callback
+    } catch (err) {
+      setError('Google authentication failed. Please try again.');
+      setIsLoading(false);
+    }
+  };
+
+  const handleGithubLogin = async () => {
+    setError('');
+    setIsLoading(true);
+    try {
+      await login('github');
+      // Navigation will happen in useEffect after OAuth callback
+    } catch (err) {
+      setError('GitHub authentication failed. Please try again.');
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="login-wrapper"> {/* Central wrapper div */}
-      <div className="login-container"> {/* Content container */}
-        <header className="login-header">
-          <h1 className="login-title">Welcome back.</h1>
-          <p className="login-subtitle">Log in to your account</p>
-        </header>
-
-        <form className="phone-input-container" onSubmit={handleLogin}>
-          <div className="phone-input-field">
-            <div className="country-selector">
-              <div className="country-flag" aria-hidden="true"></div>
-              <span className="country-code">+1</span>
-              <svg
-                width="14"
-                height="10"
-                viewBox="0 0 12 8"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
-              >
-                <path
-                  d="M1 1L6 6L11 1"
-                  stroke="black"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <label htmlFor="phone-input" className="visually-hidden">
-              Mobile number
-            </label>
-            <input
-              type="tel"
-              id="phone-input"
-              placeholder="Mobile number"
-              className="phone-input"
-              required
-              aria-required="true"
-            />
-          </div>
-
-          <p className="login-disclaimer">
-            You will receive an SMS verification that may apply message and data
-            rates.
-          </p>
-
-          <button type="submit" className="login-button">
-            Log in
+    <div className="email-page-wrapper">
+      <div className="email-container">
+        <header className="email-header">
+          <button
+            className="back-btn"
+            aria-label="Go back"
+            onClick={handleBackClick}
+          >
+            &#8592;
           </button>
-        </form>
+          <h1 className="email-title">Enter Email</h1>
+        </header>
+        <main className="email-content">
+          {error && <div className="error-message">{error}</div>}
+          <form onSubmit={handleSubmit}>
+            <div className="input-wrapper email-input">
+              <label htmlFor="email" className="visually-hidden">
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                placeholder="Email Address"
+                className="input-field"
+                aria-label="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
+                required
+              />
+              <div className="input-label">Email</div>
+            </div>
 
-        <Link to="/email-login">
-          <button className="email-login-button">Use email instead</button>
-        </Link>
+            <div className="input-wrapper password-input">
+              <label htmlFor="password" className="visually-hidden">
+                Password
+              </label>
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                placeholder="Enter Password"
+                className="input-field"
+                aria-label="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+                required
+              />
+              <div className="input-label">Password</div>
+              <button
+                type="button"
+                className="show-password-btn"
+                onClick={togglePasswordVisibility}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
 
-        <Link to="/SignUp">
-          <button className="signup-button">Sign up for an account</button>
-        </Link>
+            <button type="submit" className="email-btn" disabled={isLoading}>
+              {isLoading ? "Logging in..." : "Continue"}
+            </button>
+          </form>
+          <p className="terms-text">
+            By continuing, you agree to our{" "}
+            <Link to="/terms-of-service" className="terms-link">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link to="/privacy-policy" className="terms-link">
+              Privacy Policy
+            </Link>
+          </p>
+          <Link to="/Phone-login">
+            <button className="Phone-login-button" disabled={isLoading}>
+              Use Phone instead
+            </button>
+          </Link>
+          <Link to="/SignUp">
+            <button className="signup-button" disabled={isLoading}>
+              Sign up for an account
+            </button>
+          </Link>
+          <button className="oauth-button" onClick={handleGoogleLogin} disabled={isLoading}>
+            {isLoading ? "Logging in..." : "Login with Google"}
+          </button>
+          <button className="oauth-button" onClick={handleGithubLogin} disabled={isLoading}>
+            {isLoading ? "Logging in..." : "Login with GitHub"}
+          </button>
+        </main>
       </div>
     </div>
   );
 };
 
 export default Login;
+
+
+
+
+
+
+
+
+
