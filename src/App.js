@@ -1,7 +1,7 @@
 import "./App.css";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Login from "./components/Login";
-import PhoneLoginPage from "./components/Loginsetup/PhoneLoginPage";
+import PhoneLogin from './components/Loginsetup/PhoneLogin';
 import SignUp from "./components/Loginsetup/SignUp";
 import HomeScreen from "./components/Loginsetup/HomeScreen";
 import Profile from "./components/Profile/ProfilePage";
@@ -17,7 +17,7 @@ function App() {
         <Route path="/" element={<Login />} />
           <Route path="/" element={<Login />} />
           <Route path="/HomeScreen" element={<HomeScreen />} />
-          <Route path="/phone-login" element={<PhoneLoginPage />} />
+          <Route path="/phone-login" element={<PhoneLogin />} />
           <Route path="/SignUp" element={<SignUp />} />
           <Route path="/login" element={<Login />} />
           <Route path="/profile" element={<Profile />} />

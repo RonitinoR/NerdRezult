@@ -45,12 +45,15 @@ const Login = () => {
         throw new Error("Please enter both email and password.");
       }
 
+      // Remove the response variable since it's not being used
       await login('email', { 
-        username: email,
-        password: password 
+        email: email.trim(),
+        password: password.trim() 
       });
+
+      // If login successful, navigate to HomeScreen
+      navigate("/HomeScreen", { replace: true });
       
-      navigate("/HomeScreen");
     } catch (err) {
       setError(err.message || "Failed to login");
     } finally {
@@ -145,6 +148,9 @@ const Login = () => {
             <button type="submit" className="email-btn" disabled={isLoading}>
               {isLoading ? "Logging in..." : "Continue"}
             </button>
+            <Link to="/forgot-password" className="forgot-password-link">
+              Forgot Password?
+            </Link>
           </form>
           <p className="terms-text">
             By continuing, you agree to our{" "}
@@ -156,11 +162,12 @@ const Login = () => {
               Privacy Policy
             </Link>
           </p>
-          <Link to="/Phone-login">
-            <button className="Phone-login-button" disabled={isLoading}>
-              Use Phone instead
-            </button>
-          </Link>
+          <Link to="/phone-login">
+              <button className="phone-login-button" disabled={isLoading}>
+                Use Phone instead
+              </button>
+            </Link>
+            
           <Link to="/SignUp">
             <button className="signup-button" disabled={isLoading}>
               Sign up for an account
