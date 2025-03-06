@@ -16,3 +16,7 @@ psycopg2
 requests-oauthlib
 sqlalchemy
 uvicorn
+twilio
+bcrypt
+itsdangerous
+authlib

@@ -19,6 +19,7 @@
     "axios": "^1.6.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
+    "intl-tel-input": "^17.0.21",
     "lucide-react": "^0.309.0",
     "prop-types": "^15.8.1",
     "react": "^18.2.0",

@@ -12,7 +12,12 @@ export const AuthProvider = ({ children }) => {
       let response;
       switch (method) {
         case 'email':
-          response = await authService.login(credentials);
+        response = await authService.login(credentials);
+        setIsAuthenticated(true);
+        setAuthMethod('email');
+        return response;
+        case 'phone':
+          response = await authService.verifyOtp(credentials.phoneNumber, credentials.otp);
           break;
         case 'google':
           response = await authService.googleAuth();
@@ -24,35 +29,30 @@ export const AuthProvider = ({ children }) => {
           throw new Error('Invalid authentication method');
       }
       
-      if (response.data.access_token) {
-        localStorage.setItem('token', response.data.access_token);
+      if (response.access_token) {
+        localStorage.setItem('token', response.access_token);
         localStorage.setItem('authMethod', method);
         setAuthMethod(method);
         setIsAuthenticated(true);
-        return true;
+        return response;
       }
+      throw new Error('Invalid authentication response');
     } catch (error) {
       throw error;
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('authMethod');
-    setIsAuthenticated(false);
-    setAuthMethod(null);
-  };
-
   return (
-    <AuthContext.Provider value={{ 
-      isAuthenticated, 
-      authMethod,
-      login,
-      logout 
-    }}>
+    <AuthContext.Provider value={{ isAuthenticated, authMethod, login }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
