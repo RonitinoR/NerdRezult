@@ -57,6 +57,32 @@ export const authService = {
       throw new Error('GitHub authentication failed');
     }
   },
+  signup: async (formData) => {
+    try {
+      const response = await fetch('http://localhost:8000/api/auth/signup', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Signup failed');
+      }
+
+      const data = await response.json();
+      
+      // Store the token and redirect
+      if (data.access_token) {
+        localStorage.setItem('token', data.access_token);
+        localStorage.setItem('authMethod', 'email');
+      }
+      
+      return { data };
+    } catch (error) {
+      console.error('Signup error:', error);
+      throw error;
+    }
+  },
 };
 
 const validateAuthResponse = (response) => {

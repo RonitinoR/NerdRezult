@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { FaEdit, FaArrowLeft } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom'; // Changed to useNavigate
+import { useNavigate } from 'react-router-dom';
 import './Signup.css';
+import { authService } from '../../services/api';
 
 const Signup = () => {
-  const navigate = useNavigate(); // Use useNavigate instead of useHistory
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
   const [profilePic, setProfilePic] = useState(null);
+  const [profilePicFile, setProfilePicFile] = useState(null); // Add this state
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,61 +24,11 @@ const Signup = () => {
     profilePic: '',
   });
 
-  // Password validation function
-  const isValidPassword = (password) => {
-    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password);
-  };
-
-  // Password strength validation
-  const getPasswordStrength = (password) => {
-    const lengthCriteria = password.length >= 8;
-    const upperCaseCriteria = /[A-Z]/.test(password);
-    const lowerCaseCriteria = /[a-z]/.test(password);
-    const numberCriteria = /\d/.test(password);
-    const specialCharCriteria = /[@$!%*?&]/.test(password);
-    const allCriteriaMet = lengthCriteria && upperCaseCriteria && lowerCaseCriteria && numberCriteria && specialCharCriteria;
-    return allCriteriaMet ? 'strong' : 'weak';
-  };
-
-  // Handle form submission
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    // Reset errors
-    setFormErrors({});
-
-    // Check if any required field is empty
-    let errors = {};
-
-    if (!name) errors.name = 'Name is required.';
-    if (!email) errors.email = 'Email is required.';
-    if (!password) errors.password = 'Password is required.';
-    if (!confirmPassword) errors.confirmPassword = 'Confirm password is required.';
-    if (!role) errors.role = 'Role selection is required.';
-    if (!profilePic) errors.profilePic = 'Profile picture is required.';
-
-    if (password && confirmPassword && password !== confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match.';
-    }
-
-    if (password && !isValidPassword(password)) {
-      errors.password = 'Password must be at least 8 characters long and include one uppercase letter, one lowercase letter, one number, and one special character.';
-    }
-
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
-      return;
-    }
-
-    alert('Sign-up successful!');
-  };
-
   // Handle profile picture upload with validation
   const handleProfilePicChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      // Validate the image size (e.g., 2MB limit) and file type
-      if (file.size > 2 * 1024 * 1024) {  // 2MB max size
+      if (file.size > 2 * 1024 * 1024) {
         setFormErrors({ ...formErrors, profilePic: 'File size exceeds 2MB.' });
         return;
       }
@@ -84,37 +37,79 @@ const Signup = () => {
         return;
       }
 
+      setProfilePicFile(file); // Store the actual file
       const reader = new FileReader();
       reader.onload = (e) => {
-        setProfilePic(e.target.result);
-        setFormErrors({ ...formErrors, profilePic: '' }); // Reset error if valid
+        setProfilePic(e.target.result); // Store the preview URL
+        setFormErrors({ ...formErrors, profilePic: '' });
       };
       reader.readAsDataURL(file);
     }
   };
 
-  // Navigate back to previous page
-  const handleGoBack = () => {
-    navigate(-1); // Use navigate(-1) to go back
+  // Validate form before submission
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!name.trim()) newErrors.name = 'Name is required';
+    if (!email.trim()) newErrors.email = 'Email is required';
+    if (!password) newErrors.password = 'Password is required';
+    if (password !== confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+    
+    setFormErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  // Check if all fields are valid
-  const isFormValid = () => {
-    return (
-      name && email && password && confirmPassword && password === confirmPassword &&
-      isValidPassword(password) && role && profilePic
-    );
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      setError("Please fix the form errors before submitting.");
+      return;
+    }
+
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('name', name.trim());
+      formData.append('email', email.trim());
+      formData.append('password', password);
+      formData.append('role', role);
+      
+      if (profilePicFile) {
+        formData.append('profile_pic', profilePicFile);
+      }
+
+      const response = await authService.signup(formData);
+      
+      if (response.data.access_token) {
+        localStorage.setItem('token', response.data.access_token);
+        localStorage.setItem('authMethod', 'email');
+        navigate('/login');
+      }
+    } catch (err) {
+      console.error('Signup error:', err);
+      setError(err.message || "Failed to sign up");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="sign-up-container">
       <nav className="nav-bar">
-        {/* Back button with icon */}
-        <button className="back-button" onClick={handleGoBack}>
+        <button className="back-button" onClick={() => navigate('/login')}>
           <FaArrowLeft /> Back
         </button>
         <h1 className="sign-up-title">Sign Up</h1>
       </nav>
+
+      {error && <div className="error-alert">{error}</div>}
 
       <form className="form-container" onSubmit={handleSubmit}>
         <div className="profile-container">
@@ -123,7 +118,6 @@ const Signup = () => {
             alt="User profile"
             className="profile-image"
           />
-          {/* Hidden File Input */}
           <input
             type="file"
             accept="image/*"
@@ -131,84 +125,76 @@ const Signup = () => {
             className="hidden-file-input"
             onChange={handleProfilePicChange}
           />
-          {/* Edit Icon that Triggers File Input */}
           <FaEdit className="edit-icon" onClick={() => document.getElementById('file-input').click()} />
         </div>
 
-        {/* Name Field */}
         <div className="input-field">
-          <label htmlFor="name" className="input-label">Name</label>
+          <label htmlFor="name">Name</label>
           <input
             type="text"
             id="name"
-            className={`input-text ${formErrors.name ? 'input-error' : ''}`}
-            placeholder="Enter your name"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            className={formErrors.name ? 'error' : ''}
           />
-          {formErrors.name && <p className="error-message">{formErrors.name}</p>}
+          {formErrors.name && <span className="error-message">{formErrors.name}</span>}
         </div>
 
-        {/* Email Field */}
         <div className="input-field">
-          <label htmlFor="email" className="input-label">Email</label>
+          <label htmlFor="email">Email</label>
           <input
             type="email"
             id="email"
-            className={`input-text ${formErrors.email ? 'input-error' : ''}`}
-            placeholder="Enter your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            className={formErrors.email ? 'error' : ''}
           />
-          {formErrors.email && <p className="error-message">{formErrors.email}</p>}
+          {formErrors.email && <span className="error-message">{formErrors.email}</span>}
         </div>
 
-        {/* Password Field */}
-        <div className="password-field">
-          <label htmlFor="password" className="visually-hidden">Password</label>
+        <div className="input-field">
+          <label htmlFor="password">Password</label>
           <input
             type="password"
             id="password"
-            className={`input-text ${formErrors.password ? 'input-error' : ''}`}
-            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className={formErrors.password ? 'error' : ''}
           />
-          {formErrors.password && <p className="error-message">{formErrors.password}</p>}
-          <p className="password-strength">{getPasswordStrength(password)}</p>
+          {formErrors.password && <span className="error-message">{formErrors.password}</span>}
         </div>
 
-        {/* Confirm Password Field */}
-        <div className="password-field">
-          <label htmlFor="confirm-password" className="visually-hidden">Confirm password</label>
+        <div className="input-field">
+          <label htmlFor="confirmPassword">Confirm Password</label>
           <input
             type="password"
-            id="confirm-password"
-            className={`input-text ${formErrors.confirmPassword ? 'input-error' : ''}`}
-            placeholder="Confirm password"
+            id="confirmPassword"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
+            className={formErrors.confirmPassword ? 'error' : ''}
           />
-          {formErrors.confirmPassword && <p className="error-message">{formErrors.confirmPassword}</p>}
+          {formErrors.confirmPassword && <span className="error-message">{formErrors.confirmPassword}</span>}
         </div>
 
-        {/* Role Field */}
-        <div className="role-field">
-          <label htmlFor="role" className="input-label">Role</label>
+        <div className="input-field">
+          <label htmlFor="role">Role</label>
           <select
             id="role"
-            className="input-text"
             value={role}
             onChange={(e) => setRole(e.target.value)}
           >
             <option value="client">Client</option>
-            <option value="developer">Developer</option>
+            <option value="freelancer">Freelancer</option>
           </select>
-          {formErrors.role && <p className="error-message">{formErrors.role}</p>}
         </div>
 
-        {/* Submit Button */}
-        <button type="submit" className="confirm-button" disabled={!isFormValid()}>Confirm</button>
+        <button 
+          type="submit" 
+          className="submit-button" 
+          disabled={isLoading}
+        >
+          {isLoading ? 'Signing up...' : 'Sign Up'}
+        </button>
       </form>
     </div>
   );
