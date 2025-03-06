@@ -6,22 +6,21 @@ Base = declarative_base()
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key = True, index = True)
-    email = Column(String, unique = True, index = True)
-    name = Column(String)
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True, nullable=True)  # Make email nullable for phone-only users
+    name = Column(String, nullable=True)
     role = Column(String)
-    hashed_password = Column(String)
-    profile_pic_url = Column(String)
-    is_active = Column(Boolean, default = True)
-    provider = Column(String, default = "email") # 'email', 'github', 'google'
-    provider_id = Column(String)
-    phone_number = Column(String, unique=True, index=True)
-    otp = Column(String)
-    otp_valid_until = Column(DateTime)
+    hashed_password = Column(String, nullable=True)  # Make password nullable for phone/oauth users
+    profile_pic_url = Column(String, nullable=True)
+    is_active = Column(Boolean, default=True)
+    provider = Column(String, default="email")  # 'email', 'github', 'google', 'phone'
+    provider_id = Column(String, nullable=True)
+    phone_number = Column(String, unique=True, nullable=True)
+    auth_method = Column(String)
 
 class Profile(Base):
     __tablename__ = "profiles"
-    id = Column(Integer, primary_key = True, index = True)
+    id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'))
     bio = Column(Text)
     skills = Column(ARRAY(String))

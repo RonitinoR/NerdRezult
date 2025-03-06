@@ -1,20 +1,35 @@
 import re
 import uuid
+import logging
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, text
+from sqlalchemy import select
 from app.db.models import User
 from app.db.database import get_db
 from app.core.config import settings
-from app.core.security import get_password_hash, verify_password, create_access_token
-from app.core.security import PhoneNumber, OTP, validate_phone_number, generate_otp
+from app.core.security import (
+    get_password_hash,
+    verify_password,
+    create_access_token,
+    get_current_user
+)
+from pydantic import BaseModel
+from app.core.twilio_client import twilio_service
 
 UPLOAD_DIR = Path("uploads/profile_pic")
-UPLOAD_DIR.mkdir(parents = True, exist_ok = True)
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
+
+class PhoneNumberRequest(BaseModel):
+    phone_number: str
+
+class VerifyOTPRequest(BaseModel):
+    phone_number: str
+    otp: str  # Changed from 'code' to 'otp' to match frontend
 
 # Helper function for profile pic upload
 async def store_file(file: UploadFile):
@@ -28,7 +43,7 @@ async def store_file(file: UploadFile):
     
     # validate file size max 2MB
     max_size = 2 * 1024 * 1024
-    content = await file.read
+    content = await file.read()
     if len(content) > max_size:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, 
@@ -84,10 +99,10 @@ async def signup(
         email=email,
         hashed_password = hashed_password,
         role=role,
-        profile_pic_url=profile_pic_url
+        profile_pic_url=profile_pic_url,
     )
     db.add(new_user)
-    await db.commit
+    await db.commit()
     await db.refresh(new_user)
 
     return {
@@ -105,48 +120,104 @@ async def login(
         select(User).where(User.email == email)
     )
     user = user.scalar()
+    
     if not user or not verify_password(password, user.hashed_password):
         raise HTTPException(
-            status_code = status.HTTP_401_UNAUTHORIZED, 
-            detail = "Invalid credential"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials"
         )
-    access_token = create_access_token(data = {"sub": user.email})
+        
+    access_token = create_access_token(data={"sub": user.email})
+    
     return {
-        "access_token": access_token, 
+        "access_token": access_token,
         "token_type": "bearer",
         "user_id": user.id,
         "role": user.role
     }
-# OTP endpoints
-@router.post("/send-otp")
-async def send_otp(phone: PhoneNumber, db: AsyncSession = Depends(get_db)):
-    phone_number = validate_phone_number(phone.phone_number)
-    otp = generate_otp()
-    await db.execute(
-        text("""
-            INSERT INTO users (phone_number, otp, otp_valid_until) 
-            VALUES (:phone_number, :otp, NOW() + INTERVAL '5 minutes')
-            ON CONFLICT (phone_number) DO UPDATE 
-            SET otp = EXCLUDED.otp, otp_valid_until = EXCLUDED.otp_valid_until;
-        """), 
-        {"phone_number": phone_number, "otp": otp}
-    )
-    await db.commit()
-    # Here, you'd send the OTP via an SMS API
-    return {"message": "OTP sent successfully"}
 
-@router.post("/verify-otp")
-async def verify_otp(otp_data: OTP, db: AsyncSession = Depends(get_db)):
-    phone_number = validate_phone_number(otp_data.phone_number)
-    result = await db.execute(
-        text("""
-            SELECT otp FROM users 
-            WHERE phone_number = :phone_number AND otp = :otp AND otp_valid_until > NOW();
-        """), 
-        {"phone_number": phone_number, "otp": otp_data.otp}
-    )
-    user = result.fetchone()
-    if user is None:
-        raise HTTPException(status_code=400, detail="Invalid OTP")
-    access_token = create_access_token(data={"sub": phone_number})
-    return {"access_token": access_token, "token_type": "bearer"}
+@router.post("/phone/start")
+async def start_phone_verification(
+    request: PhoneNumberRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """Start phone verification process"""
+    try:
+        # Validate and format phone number
+        phone_number = request.phone_number.strip()
+        if not phone_number.startswith('+'):
+            phone_number = f"+1{phone_number}"  # Assuming US numbers
+
+        # Send verification code
+        await twilio_service.send_verification(phone_number)
+        
+        return {"message": "Verification code sent successfully"}
+    
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to send verification code"
+        )
+
+@router.post("/phone/verify")
+async def verify_phone(request: VerifyOTPRequest, db: AsyncSession = Depends(get_db)):
+    try:
+        # Format phone number
+        phone_number = request.phone_number.strip()
+        if not phone_number.startswith('+'):
+            phone_number = f"+1{phone_number}"
+        
+        # Verify code with Twilio
+        try:
+            is_valid = await twilio_service.check_verification(phone_number, request.otp)
+        except ValueError as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(e)
+            )
+
+        if not is_valid:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid verification code"
+            )
+
+        # Get or create user - Note: removed auth_method from select
+        stmt = select(User).where(User.phone_number == phone_number)
+        result = await db.execute(stmt)
+        user = result.scalar()
+
+        if not user:
+            # Create new user
+            user = User(
+                phone_number=phone_number,
+                provider="phone",
+                is_active=True,
+                role="user"
+            )
+            db.add(user)
+            await db.commit()
+            await db.refresh(user)
+
+        # Generate access token
+        access_token = create_access_token(
+            data={"sub": phone_number, "user_id": str(user.id)}
+        )
+
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user_id": user.id
+        }
+
+    except Exception as e:
+        logger.error(f"Phone verification error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
