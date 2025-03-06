@@ -1,18 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './Add.css';
-import ProjectPage from '../Projectscreen/projectpage'; // Fixed import path
+import ProjectPage from '../Projectscreen/projectpage';
 
 const Popup = () => {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
 
-  // Function to show popup
   const showPopup = () => {
     setIsPopupVisible(true);
   };
 
-  // Function to close popup
-  const closePopup = () => {
+  const closePopup = useCallback(() => {
     setIsPopupVisible(false);
+  }, []);
+
+  // Handle Escape key press
+  useEffect(() => {
+    const handleEscKey = (event) => {
+      if (event.key === 'Escape' && isPopupVisible) {
+        closePopup();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscKey);
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, [isPopupVisible, closePopup]);
+
+  // Handle clicking outside the popup
+  const handleOutsideClick = (event) => {
+    if (event.target.id === 'popup-page') {
+      closePopup();
+    }
   };
 
   return (
@@ -21,7 +40,7 @@ const Popup = () => {
       <button
         className="nav-item-add-btn"
         aria-label="Add new item"
-        onClick={showPopup} // Show popup when button is clicked
+        onClick={showPopup}
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path
@@ -38,6 +57,7 @@ const Popup = () => {
       {isPopupVisible && (
         <div
           id="popup-page"
+          onClick={handleOutsideClick}
           style={{
             display: 'block',
             position: 'fixed',
@@ -51,11 +71,11 @@ const Popup = () => {
         >
           <div
             style={{
-              position: 'absolute',
+              position: 'relative',
               top: '50%',
               left: '50%',
               transform: 'translate(-50%, -50%)',
-              backgroundColor: 'white',
+              backgroundColor: '#E2FDDA',
               padding: '20px',
               borderRadius: '5px',
               boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)',
@@ -65,20 +85,40 @@ const Popup = () => {
               overflowY: 'auto',
             }}
           >
-            <ProjectPage isPopup={true} onClose={closePopup} />
+            {/* Close (X) Button */}
             <button
+              onClick={closePopup}
+              aria-label="Close popup"
               style={{
-                marginTop: '20px',
-                padding: '10px 20px',
+                position: 'absolute',
+                top: '10px',
+                right: '10px',
+                background: 'none',
                 border: 'none',
-                backgroundColor: '#ccc',
-                borderRadius: '5px',
                 cursor: 'pointer',
+                padding: '5px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1,
               }}
-              onClick={closePopup} // Close popup when this button is clicked
             >
-              Close
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
             </button>
+            
+            <ProjectPage isPopup={true} onClose={closePopup} />
           </div>
         </div>
       )}
@@ -87,3 +127,4 @@ const Popup = () => {
 };
 
 export default Popup;
+
