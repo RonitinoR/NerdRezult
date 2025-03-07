@@ -30,10 +30,10 @@ details: "",
 
 skills: [],
 
+paymentType: "project", // Add this new field
 payPerHour: "", // Just store the number
-
+payPerProject: "", // Add this new field
 duration: "", // Just store the number
-
 githubLink: "",
 
 startDate: "",
@@ -45,6 +45,8 @@ projects: 0,
 followers: 0,
 
 earnings: 0,
+
+projectStatus: "featured", // Instead of separate isFeatured and isUrgent
 
 });
 
@@ -537,63 +539,161 @@ Skills Required
 </button>
 </div>
 </div>
-<div className="grid grid-cols-2 gap-4">
-<div>
-<label
-  className="block text-sm font-medium text-gray-400 mb-1.5"  // Lightened text color
-  htmlFor="payPerHour"
->
-Pay Per Hour
-</label>
-<div className="relative">
-<span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
-<input
-  type="number"
-  id="payPerHour"
-  name="payPerHour"
-  min="0"
-  step="0.01"
-  value={form.payPerHour}
-  onChange={(e) => setForm(prev => ({
-    ...prev,
-    payPerHour: e.target.value
-  }))}
-  className="w-full p-3 pl-7 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent bg-white/80"
-  style={{
-    background: isPopup ? "rgba(255, 255, 255, 0.8)" : "white"
-  }}
-  placeholder="0.00"
-/>
+<div className="space-y-4">
+  <label className="block text-sm font-medium text-gray-600 mb-3">
+    Payment Type
+  </label>
+  <div className="flex items-center gap-2 mb-4">
+    <span className="text-sm text-gray-600">Pay Per Project</span>
+    <div 
+      className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors bg-blue-600 cursor-pointer"
+      onClick={() => setForm(prev => ({
+        ...prev,
+        paymentType: prev.paymentType === "project" ? "hourly" : "project",
+        payPerHour: prev.paymentType === "project" ? "" : prev.payPerHour,
+        payPerProject: prev.paymentType === "hourly" ? "" : prev.payPerProject,
+        duration: prev.paymentType === "project" ? "" : prev.duration
+      }))}
+      role="switch"
+      aria-checked={form.paymentType === "project"}
+      tabIndex={0}
+    >
+      <span
+        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+          form.paymentType === "project" ? 'translate-x-1' : 'translate-x-6'
+        }`}
+      />
+    </div>
+    <span className="text-sm text-gray-600">Pay Per Hour</span>
+  </div>
+
+  <div className="grid grid-cols-2 gap-4">
+    {form.paymentType === "project" ? (
+      <div className="col-span-2">
+        <label
+          className="block text-sm font-medium text-gray-400 mb-1.5"
+          htmlFor="payPerProject"
+        >
+          Project Rate
+        </label>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
+          <input
+            type="number"
+            id="payPerProject"
+            name="payPerProject"
+            min="0"
+            step="0.01"
+            value={form.payPerProject}
+            onChange={(e) => setForm(prev => ({
+              ...prev,
+              payPerProject: e.target.value
+            }))}
+            className="w-full p-3 pl-7 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent bg-white/80"
+            style={{
+              background: isPopup ? "rgba(255, 255, 255, 0.8)" : "white"
+            }}
+            placeholder="0.00"
+          />
+        </div>
+      </div>
+    ) : (
+      <>
+        <div>
+          <label
+            className="block text-sm font-medium text-gray-400 mb-1.5"
+            htmlFor="payPerHour"
+          >
+            Pay Per Hour
+          </label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
+            <input
+              type="number"
+              id="payPerHour"
+              name="payPerHour"
+              min="0"
+              step="0.01"
+              value={form.payPerHour}
+              onChange={(e) => setForm(prev => ({
+                ...prev,
+                payPerHour: e.target.value
+              }))}
+              className="w-full p-3 pl-7 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent bg-white/80"
+              style={{
+                background: isPopup ? "rgba(255, 255, 255, 0.8)" : "white"
+              }}
+              placeholder="0.00"
+            />
+          </div>
+        </div>
+        <div>
+          <label
+            className="block text-sm font-medium text-gray-400 mb-1.5"
+            htmlFor="duration"
+          >
+            Duration
+          </label>
+          <div className="relative">
+            <input
+              type="number"
+              id="duration"
+              name="duration"
+              min="0"
+              step="0.5"
+              value={form.duration}
+              onChange={(e) => setForm(prev => ({
+                ...prev,
+                duration: e.target.value
+              }))}
+              className="w-full p-3 pr-12 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent bg-white/80"
+              style={{
+                background: isPopup ? "rgba(255, 255, 255, 0.8)" : "white"
+              }}
+              placeholder="0.0"
+            />
+            <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">hrs</span>
+          </div>
+        </div>
+      </>
+    )}
+  </div>
 </div>
-</div>
-<div>
-<label
-  className="block text-sm font-medium text-gray-400 mb-1.5"  // Lightened text color
-  htmlFor="duration"
->
-Duration
-</label>
-<div className="relative">
-<input
-  type="number"
-  id="duration"
-  name="duration"
-  min="0"
-  step="0.5"
-  value={form.duration}
-  onChange={(e) => setForm(prev => ({
-    ...prev,
-    duration: e.target.value
-  }))}
-  className="w-full p-3 pr-12 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent bg-white/80"
-  style={{
-    background: isPopup ? "rgba(255, 255, 255, 0.8)" : "white"
-  }}
-  placeholder="0.0"
-/>
-<span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">hrs</span>
-</div>
-</div>
+<div className="space-y-4">
+  <label className="block text-sm font-medium text-gray-600 mb-3">
+    Project Status
+  </label>
+  <div className="flex items-center gap-2">
+    <span className="text-sm text-gray-600">Featured</span>
+    <div 
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+        form.projectStatus === "featured" ? 'bg-blue-600' : 'bg-red-600'
+      }`}
+      onClick={() => setForm(prev => ({
+        ...prev,
+        projectStatus: prev.projectStatus === "featured" ? "urgent" : "featured"
+      }))}
+      role="switch"
+      aria-checked={form.projectStatus === "featured"}
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          setForm(prev => ({
+            ...prev,
+            projectStatus: prev.projectStatus === "featured" ? "urgent" : "featured"
+          }));
+        }
+      }}
+    >
+      <span
+        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+          form.projectStatus === "featured" ? 'translate-x-1' : 'translate-x-6'
+        }`}
+      />
+    </div>
+    <span className="text-sm text-gray-600">Urgent</span>
+  </div>
 </div>
 <div>
 <label
