@@ -366,7 +366,10 @@ const ProfilePage = () => {
                           : "text-gray-300"
                       }`}
                       onClick={() =>
-                        setProfileData({ ...profileData, rating: star })
+                        setProfileData({
+                          ...profileData,
+                          rating: profileData.rating === star ? 0 : star
+                        })
                       }
                     />
                   ))}
@@ -423,7 +426,9 @@ const ProfilePage = () => {
                 placeholder="Add new skill"
                 className="bg-white/80 backdrop-blur-sm"
               />
-              <Button onClick={addSkill}>Add</Button>
+              <Button onClick={addSkill} className="bg-gray-100 p-3 rounded-xl hover:bg-gray-200">
+                <Plus className="w-6 h-6" />
+              </Button>
             </div>
 
             {/* Dropdowns */}
@@ -445,7 +450,9 @@ const ProfilePage = () => {
                     placeholder="Add new certification"
                     className="bg-white/80 backdrop-blur-sm"
                   />
-                  <Button onClick={handleAddCertification}>Add</Button>
+                  <Button onClick={handleAddCertification} className="bg-gray-100 p-3 rounded-xl hover:bg-gray-200">
+                    <Plus className="w-6 h-6" />
+                  </Button>
                 </div>
                 <Select
                   value={profileData.certified}
@@ -501,7 +508,9 @@ const ProfilePage = () => {
                     placeholder="Add new project link"
                     className="bg-white/80 backdrop-blur-sm"
                   />
-                  <Button onClick={handleAddProjectLink}>Add</Button>
+                  <Button onClick={handleAddProjectLink} className="bg-gray-100 p-3 rounded-xl hover:bg-gray-200">
+                    <Plus className="w-6 h-6" />
+                  </Button>
                 </div>
                 <Select
                   value={profileData.projectLinks[0]}
@@ -553,7 +562,9 @@ const ProfilePage = () => {
                     placeholder="Add new project"
                     className="bg-white/80 backdrop-blur-sm"
                   />
-                  <Button onClick={handleAddProjectName}>Add</Button>
+                  <Button onClick={handleAddProjectName} className="bg-gray-100 p-3 rounded-xl hover:bg-gray-200">
+                    <Plus className="w-6 h-6" />
+                  </Button>
                 </div>
                 <Select
                   value={profileData.projectsName}
