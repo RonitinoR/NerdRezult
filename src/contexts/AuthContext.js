@@ -9,34 +9,31 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (method, credentials) => {
     try {
-      let response;
       switch (method) {
         case 'email':
-        response = await authService.login(credentials);
-        setIsAuthenticated(true);
-        setAuthMethod('email');
-        return response;
+          const response = await authService.login(credentials);
+          setIsAuthenticated(true);
+          setAuthMethod('email');
+          return response;
         case 'phone':
-          response = await authService.verifyOtp(credentials.phoneNumber, credentials.otp);
+          const phoneResponse = await authService.verifyOtp(credentials.phoneNumber, credentials.otp);
+          if (phoneResponse.access_token) {
+            setIsAuthenticated(true);
+            setAuthMethod('phone');
+            return phoneResponse;
+          }
           break;
         case 'google':
-          response = await authService.googleAuth();
+          await authService.googleAuth();
+          // The function won't return as we're redirecting
           break;
         case 'github':
-          response = await authService.githubAuth();
+          await authService.githubAuth();
+          // The function won't return as we're redirecting
           break;
         default:
           throw new Error('Invalid authentication method');
       }
-      
-      if (response.access_token) {
-        localStorage.setItem('token', response.access_token);
-        localStorage.setItem('authMethod', method);
-        setAuthMethod(method);
-        setIsAuthenticated(true);
-        return response;
-      }
-      throw new Error('Invalid authentication response');
     } catch (error) {
       throw error;
     }

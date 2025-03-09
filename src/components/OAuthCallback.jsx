@@ -8,13 +8,16 @@ const OAuthCallback = () => {
   useEffect(() => {
     const token = searchParams.get('token');
     const provider = searchParams.get('provider');
+    const error = searchParams.get('error');
 
-    if (token) {
+    if (error) {
+      navigate(`/login?error=${encodeURIComponent(error)}`);
+    } else if (token) {
       localStorage.setItem('token', token);
       localStorage.setItem('authMethod', provider);
-      navigate('/HomeScreen'); // or wherever you want to redirect after successful login
+      navigate('/HomeScreen');
     } else {
-      navigate('/login'); // redirect to login if no token
+      navigate('/login?error=Authentication failed');
     }
   }, [searchParams, navigate]);
 

@@ -92,19 +92,15 @@ export const authService = {
       throw error;
     }
   },
-  googleAuth: async () => {
-    try {
-      window.location.href = `${API_BASE_URL}/oauth/auth/google`;
-    } catch (error) {
-      throw new Error('Google authentication failed');
-    }
+  googleAuth: () => {
+    window.location.href = `${API_BASE_URL}/oauth/auth/google`;
+    // Return a promise that never resolves since we're redirecting
+    return new Promise(() => {});
   },
-  githubAuth: async () => {
-    try {
-      window.location.href = `${API_BASE_URL}/oauth/auth/github`;
-    } catch (error) {
-      throw new Error('GitHub authentication failed');
-    }
+  githubAuth: () => {
+    window.location.href = `${API_BASE_URL}/oauth/auth/github`;
+    // Return a promise that never resolves since we're redirecting
+    return new Promise(() => {});
   },
   sendOtp: async (phoneNumber) => {
     try {

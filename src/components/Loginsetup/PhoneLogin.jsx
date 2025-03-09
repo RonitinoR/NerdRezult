@@ -31,17 +31,13 @@ const PhoneLogin = () => {
         utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/utils.js",
       });
       setPhoneInputInstance(iti);
+      
+      // Cleanup function
+      return () => {
+        iti.destroy();
+      };
     }
   }, []); // This effect runs once on mount
-
-  // Separate cleanup effect
-  useEffect(() => {
-    return () => {
-      if (phoneInputInstance) {
-        phoneInputInstance.destroy();
-      }
-    };
-  }, [phoneInputInstance]); // This effect handles cleanup when phoneInputInstance changes or component unmounts
 
   const handleStartVerification = async (e) => {
     e.preventDefault();
