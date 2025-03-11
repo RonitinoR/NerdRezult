@@ -1,11 +1,13 @@
 import re
 import uuid
 import logging
+from typing import Annotated
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 from app.db.models import User
 from app.db.database import get_db
 from app.core.config import settings
@@ -112,29 +114,35 @@ async def signup(
 
 @router.post("/login")
 async def login(
-    email: str = Form(...),
-    password: str = Form(...),
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: AsyncSession = Depends(get_db)
 ):
-    user = await db.execute(
-        select(User).where(User.email == email)
-    )
-    user = user.scalar()
-    
-    if not user or not verify_password(password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials"
+    try:
+        user = await db.execute(
+            select(User).where(User.email == form_data.username)
         )
+        user = user.scalar()
         
-    access_token = create_access_token(data={"sub": user.email})
-    
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user_id": user.id,
-        "role": user.role
-    }
+        if not user or not verify_password(form_data.password, user.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect username or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        access_token = create_access_token(data={"sub": user.email})
+        return {
+            "access_token": access_token, 
+            "token_type": "bearer",
+            "user_id": user.id
+        }
+
+    except SQLAlchemyError as e:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database error occurred. Please try again."
+        )
 
 @router.post("/phone/start")
 async def start_phone_verification(

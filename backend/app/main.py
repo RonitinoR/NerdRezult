@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from contextlib import asynccontextmanager
-from app.routes import auth, oauth
+from app.routes import auth, oauth, addproject
 from app.db.database import get_db, engine
 from app.db.models import Base
 from app.core.config import settings
@@ -31,5 +31,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Route registration
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(oauth.router, prefix="/api/oauth", tags=["oauth"])
+app.include_router(addproject.router, prefix="/api", tags=["projects"])  # Updated prefix
