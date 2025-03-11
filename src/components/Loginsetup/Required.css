@@ -1,0 +1,125 @@
+.container {
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 100%);
+    justify-content: center;
+    align-items: center;
+    max-width: none;
+    min-height: 100vh;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 20px;
+    display: flex;
+  }
+  @media (width<=991px) {
+    .container {
+      max-width: 991px;
+    }
+  }
+  @media (width<=640px) {
+    .container {
+      max-width: 640px;
+    }
+  }
+  .formCard {
+    background: linear-gradient(90deg, #ffffff0d 0%, #ffffff1a 100%);
+    border: 1px solid #ffffff1a;
+    border-radius: 24px;
+    width: 748px;
+    padding: 40px;
+    box-shadow: 0 20px 50px #0003;
+  }
+  @media (width<=991px) {
+    .formCard {
+      width: 90%;
+      max-width: 748px;
+    }
+  }
+  @media (width<=640px) {
+    .formCard {
+      padding: 20px;
+    }
+  }
+  .headerContainer {
+    margin-bottom: 40px;
+  }
+  .formTitle {
+    color: #fff;
+    margin-bottom: 8px;
+    font-family: Inter, sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 36px;
+  }
+  @media (width<=640px) {
+    .formTitle {
+      font-size: 20px;
+      line-height: 30px;
+    }
+  }
+  .formSubtitle {
+    color: #94a3b8;
+    font-family: Inter, sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 21px;
+  }
+  .inputGroup {
+    margin-bottom: 24px;
+  }
+  .inputLabel {
+    color: #e2e8f0;
+    margin-bottom: 6px;
+    font-family: Inter, sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 19.5px;
+  }
+  .inputField {
+    color: #e2e8f0;
+    background-color: #ffffff0d;
+    border: 1px solid #ffffff1a;
+    border-radius: 12px;
+    width: 100%;
+    height: 42px;
+    padding: 0 16px;
+    font-family: Inter, sans-serif;
+    font-size: 16px;
+  }
+  @media (width<=640px) {
+    .inputField {
+      font-size: 14px;
+    }
+  }
+  .selectWrapper {
+    user-select: wrapper;
+    position: relative;
+  }
+  .buttonContainer {
+    justify-content: flex-end;
+    display: flex;
+  }
+  .submitButton {
+    color: #e2e8f0;
+    cursor: pointer;
+    background-color: #ffffff1a;
+    border: 1px solid #ffffff1a;
+    border-radius: 12px;
+    width: 112px;
+    height: 50px;
+    font-family: Inter, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  @media (width<=640px) {
+    .submitButton {
+      width: 100%;
+    }
+  }
+  .dropdownIcon {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 8px;
+  }
+  
